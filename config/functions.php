@@ -15,14 +15,13 @@
 /**=================================================HELPER FUNCTIONS ================================ */
 /**=================================================HELPER FUNCTIONS ================================ */
 /**=================================================HELPER FUNCTIONS ================================ */
-/**=================================================HELPER FUNCTIONS ================================ */
-/**=================================================HELPER FUNCTIONS ================================ */
-/**=================================================HELPER FUNCTIONS ================================ */
 
+function fetch_array($result) {
+  return  mysqli_fetch_array($result);
+}
 
 
 /**=================================================query function================================ */
-
 
 function query($sql) {
     global $connection;
@@ -116,8 +115,104 @@ function send_email($email,$subject,$message,$headers) {
     return mail($email,$subject,$message,$headers);
 }
 
-/**=================================================USER LOGIN FUNCTIONS================================ */
-/**=================================================USER LOGIN FUNCTIONS ================================ */
-/**=================================================USER LOGIN FUNCTIONS================================ */
-/**=================================================USER LOGIN FUNCTIONS ================================ */
+/**=================================================VALIDATION FUNCTIONS ================================ */
+/**=================================================VALIDATION FUNCTIONS ================================ */
 
+
+
+/**=================================================check if email exists ================================ */
+
+function email_exists($email) {
+    $query = query("SELECT id FROM users WHERE email = " . $email);
+    confirm($query);
+    if(count_rows($query) == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**=================================================check if username exists ================================ */
+
+function username_exists($username) {
+    $query = query("SELECT id FROM users WHERE username = ". $username);
+    confirm($query);
+    if(count_rows($query) == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**=================================================USER LOGIN VALIDATION FUNCTIONS ============================== */
+
+function validate_user_login() {
+    $errors = [];
+
+    if($_SERVER["REQUEST_METHOD"] == "POST") {
+        $email = clean($_POST['email']);
+        $password = clean($_POST['password']);
+        $remember_me = isset($_POST['remember_me']);
+
+        /***********************email validation******************************************** */
+        if(empty($email)) {
+            $errors[] = "<div class ='alert alert-danger'>The email field cannot be empty!!!!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
+        }
+
+       /***********************password validation******************************************** */
+
+      if(empty($password)) {
+
+        $errors[] = "<div class ='alert alert-danger'>The password field cannot be empty!!!!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
+     
+        }
+
+        if(!empty($errors)) {
+            foreach($errors as $error) {
+                echo $error;
+            }
+        } else {
+            if(login($email,$password,$remember_me)) {
+                redirect("index.php");
+            } else {
+                set_message("<div class ='alert alert-danger'>Error occurred while trying to login!!!!<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>");
+                redirect("login.php");
+            }
+        }
+    }
+}
+
+/**=================================================LOGIN USER ============================== */
+
+function login($email,$password,$remember_me) {
+    $result = query("SELECT username,password,id FROM users WHERE user_email = '" . escape($email) . "'AND active = 1");
+    confirm($result);
+    if(count_rows($result) == 1) {
+
+        $row = fetch_array($result);
+        $db_username = $row['username'];
+        $db_password = $row['password'];
+        /********************pulling out the password and changing it to its original************************************** */
+        if(md5($password) == $db_password) {
+
+             /**============setting and checking the cookie******************************************************************** */
+            if($remember_me == "on") {
+
+                setcookie("email",$email,time() + 100);
+            }
+              /**============setting session for the email to be available in the whole site************************************* */
+            $_SESSION['username'] = $db_username;
+            return true;
+        } else {
+
+            return false;
+        }
+        return true;
+    } else {
+
+        return false;
+    }
+}
+
+/**=================================================REGISTER USERS TO THE SYSTEM============================== */
+/**=================================================REGISTER USERS TO THE SYSTEM============================== */

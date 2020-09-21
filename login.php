@@ -1,3 +1,5 @@
+<?php include "config/functions.php"; ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,8 +25,13 @@
     </div>
     <div class="card-body">
       <p class="login-box-msg">Sign in to access your account</p>
+    
+      <?php
 
-      <?php  ?>
+        display_message();
+        validate_user_login();
+
+         ?>
 
       <form method="post" id="loginForm" action="login.php">
         <div class="input-group mb-3">
